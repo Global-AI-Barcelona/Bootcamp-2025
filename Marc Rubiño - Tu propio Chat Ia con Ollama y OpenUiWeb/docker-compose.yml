@@ -1,0 +1,32 @@
+services:
+  ollama:
+    image: 'ollama/ollama:latest'
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./models:/root/.ollama
+    devices:
+      - "/dev/dri:/dev/dri" # Monta la GPU Intel
+    environment:
+      - LIBVA_DRIVER_NAME=iHD  # Configura el driver VA-API
+      - INTEL_GPU_MAX_COMPUTE_RINGS=1 # Optimización para múltiples hilos
+    networks:
+      - ollama_network
+
+  open-webui-ollama:
+    image: 'ghcr.io/open-webui/open-webui:main'
+    restart: always
+    container_name: open-webui-ollama
+    volumes:
+      - './open-webui:/app/backend/data'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '3333:8080'
+    networks:
+      - ollama_network
+
+networks:
+  ollama_network:
